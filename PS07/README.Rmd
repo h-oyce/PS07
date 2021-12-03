@@ -1,0 +1,80 @@
+---
+title: "Joyce Huang: Learning Github"
+output: github_document
+---
+
+```{r setup, echo = FALSE, results='hide',fig.keep='all'} 
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(sf)
+library(lubridate)
+library(ical)
+library(babynames)
+library(gapminder)
+```
+
+```{r global_options}
+knitr::opts_chunk$set(fig.path='Figs/')
+```
+
+
+## Intro
+
+Hello folks! My name is Joyce Huang and I use **they/she** pronouns. I am a first year student at Smith College, but I am originally from Connecticut. 
+
+
+Here are some of the plots I have made for SDS192 (Intro to Data Science) this far into the semester. 
+
+```{r, echo=FALSE, results='hide', fig.keep='all'}
+calendar_data <- "invite (2).ics" %>%
+  ical_parse_df() %>% 
+  as_tibble() %>% 
+  mutate(
+    start_datetime = with_tz(start, tzone = "America/New_York"),
+    end_datetime = with_tz(end, tzone = "America/New_York"),
+    minutes = end_datetime - start_datetime,
+    date = floor_date(start_datetime, unit = "day")
+  ) %>%
+  mutate(summary = tolower(summary)) %>%
+  group_by(date, summary) %>%
+  summarize(minutes = sum(minutes) %>% as.numeric()) %>%
+  mutate(hours = minutes/60)
+
+```
+
+```{r}
+ggplot(data = calendar_data, mapping = aes(x = date, y = hours)) +
+  geom_line() +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~summary) +
+  labs(x = "Date", y = "Hours", title = "Casey's Social vs. Isolated Time in Hours") +
+  theme(panel.background = element_rect(fill = "#c1e8d2",
+                                size = 2, linetype = "solid"))
+```
+
+```{r, echo=FALSE, results='hide', fig.keep='all'}
+babynames_riley_casey <- babynames %>% 
+  filter(name == "Casey" | name == "Riley") %>% 
+  filter(year >= 1945)
+babynames_riley_casey
+```
+
+```{r}
+ggplot(data = babynames_riley_casey, mapping = aes(x = year, y = prop, group = sex, color = sex)) +
+  geom_line() +
+  facet_wrap(~name) +
+  labs(x = "Year", y = "Proportion")
+```
+
+```{r}
+gapminder_2007 <- gapminder %>% 
+  filter(year == 2007)
+```
+
+```{r}
+ggplot(data = gapminder_2007, mapping = aes(x = gdpPercap, y = lifeExp, size = pop, color = continent)) +
+  geom_point()
+```
+
+
+
